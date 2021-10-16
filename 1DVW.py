@@ -6,6 +6,7 @@ import sys
 
 #List that holds the densities to be plotted later.
 den=[]
+ave=[]
 tlist=[]
 
 #In this program, the grid is represented by a 0 array. 
@@ -29,6 +30,8 @@ else:
 print('How many time steps should the program use?')
 t=int(input())
 
+
+
 #Randomly place N particles in the grid
 n=N
 while n !=0:
@@ -45,17 +48,11 @@ while n !=0:
 
 #The particles move t times
 T=1
-while T != t:
-    par=np.array(np.nonzero(lattice))[0]
-    #We pick a random particle that will be allowed to move one step.
-    val=np.random.choice(par)
-    #Use RNG to determine if the particle will decay.
-    die=random.randint(1,100)
-    if die==200:
-        #Remove the particles from the system if it decays.
-        lattice[val]=0
-        N=N-1
-    else:
+sum=0
+while T != t and N>0:
+        par=np.array(np.nonzero(lattice))[0]
+        #We pick a random particle that will be allowed to move one step.
+        val=np.random.choice(par)
         #Randomly pick which direction the particle moves
         valm=random.randint(1, 2)
         #The particle moves to the left
@@ -88,19 +85,31 @@ while T != t:
                 lattice[val]=0
                 lattice[val+1]=1
         
-    #Append values we want to plot later
-    den.append(N/L)
-    #tlist.append(1/np.sqrt(T))
-    #Move to the next time step
-    T=T+1
+        #Append values we want to plot later
+        den.append(N/L)
+        #Averege density of the system
+        sum=sum+(N/L)
+        ave.append(sum/T)
+        #Move to the next time step
+        
+        tlist.append()
+        T=T+1
 
+
+#If the grid is empty, this part fills the 
+if N==0:
+    while T!=t:
+        den.append(N/L)
+        ave.append(sum/T)
+        T=T+1
 print('Number of remaining particles: ', N)
 
-
+#Plot the recorded values
 plt.figure
-plt.plot(den, 'r', label='Particle density in the grid')
-#plt.plot(tlist, 'b', label='1/sqrt(t)')
+plt.plot(den, 'r', label='Particle density')
+plt.plot(ave, 'g', label='Ensemble verage particle density')
+plt.title('Vicious Walkers in One Dimension')
 plt.xlabel('Time')
 plt.ylabel('Particles per grid point')
-plt.legend(bbox_to_anchor=(1.1, 1.05))
+plt.legend()
 plt.show()

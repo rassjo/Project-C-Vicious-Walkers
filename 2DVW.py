@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import numpy as np
 import matplotlib.pyplot as plt
+import math
 import random
 import sys
 
@@ -9,11 +10,10 @@ import sys
 #In this program, the grid is represented by a 0 array. 
 #Elements in the matrix that correspond to particles will be replaced by a 1.
 #Particles that occupy the same point will annihilate each other and be removed from the system.
-#There's a 1 % chance that any time a particle tries to move, it decays and is removed from the system.
-
 
 #List that holds the densities to be plotted later.
 den=[]
+ave=[]
 tlist=[]
 
 #Generate grid (matrix) of size LxL. 
@@ -44,11 +44,10 @@ while n !=0:
     else:
         pass
 
-
-
-#The particles move t times
+#The particles move t times. If no particles are left, the loop ends early.
 T=1
-while T != t:
+sum=0
+while T != t and N>0:
     #Make an index array of nonzero points from which we pick a random element. The corresponding partice will then move one step
     #Nonzero creates a tuple of arrays. The first tuple element corresponds to the horizontal componet
     par1=np.nonzero(lattice)[0]
@@ -62,92 +61,95 @@ while T != t:
     #Use the random number to get the coordinates of a particle. That particle will be allowed to move a step
     val1=par1[valr]
     val2=par2[valr]
-
-    #Use RNG to determine if the particle will decay.
-    die=random.randint(1,100)
-    if N>0 and die==101:
-        #Remove the particles from the system if it decays.
-        lattice[val1,val2]=0
-        N=N-1
-    else:
-        #Randomly pick which direction the particle moves
-        valm=random.randint(1, 4)
-        
-        #The particle moves to the left
-        if valm==1:
-            #If the particle tries to move outside the grid, it remains at the same point as before
-            if val1-1<0:
-                pass
-            #If that grid point is occupied, the particles annihilate each other
-            elif lattice[val1-1, val2]==1:
-                lattice[val1, val2]=0
-                lattice[val1-1, val2]=0
-                #Total amount of particles decrease by 2.
-                N=N-2
-            #If none of the above is true, the particle moves in the chosen direction
-            else:
-                lattice[val1, val2]=0
-                lattice[val1-1, val2]=1
-                
-        #The particle moves to the right    
-        elif valm==2:
-            
-            if val1+1>L-1:
-                pass
-            
-            elif lattice[val1+1, val2]==1:
-                lattice[val1, val2]=0
-                lattice[val1+1, val2]=0
-                
-                N=N-2
-            
-            else:
-                lattice[val1, val2]=0
-                lattice[val1+1, val2]=1
-                
-        #The particle moves down
-        elif valm==3:
-            if val2-1<0:
-                pass
-             
-            elif lattice[val1, val2-1]==1:
-                    lattice[val1, val2]=0
-                    lattice[val1, val2-1]=0
-                    N=N-2
-               
-            else:
-                lattice[val1, val2]=0
-                lattice[val1, val2-1]=1
-                
-        #The particle moves up
-        else:
-            
-            if val2+1>L-1:
-                pass
-                
-            elif lattice[val1, val2+1]==1:
-                lattice[val1, val2]=0
-                lattice[val1, val2+1]=0
-                N=N-2
-               
-            else:
-                    lattice[val1, val2]=0
-                    lattice[val1, val2+1]=1
-                
+    #Randomly pick which direction the particle moves
+    valm=random.randint(1, 4)
     
-    #Append values that we want to plot later
+    #The particle moves to the left
+    if valm==1:
+        #If the particle tries to move outside the grid, it remains at the same point as before
+        if val1-1<0:
+            pass
+        #If that grid point is occupied, the particles annihilate each other
+        elif lattice[val1-1, val2]==1:
+            lattice[val1, val2]=0
+            lattice[val1-1, val2]=0
+            #Total amount of particles decrease by 2.
+            N=N-2
+        #If none of the above is true, the particle moves in the chosen direction
+        else:
+            lattice[val1, val2]=0
+            lattice[val1-1, val2]=1
+            
+    #The particle moves to the right    
+    elif valm==2:
+        
+        if val1+1>L-1:
+            pass
+        
+        elif lattice[val1+1, val2]==1:
+            lattice[val1, val2]=0
+            lattice[val1+1, val2]=0
+            
+            N=N-2
+        
+        else:
+            lattice[val1, val2]=0
+            lattice[val1+1, val2]=1
+            
+    #The particle moves down
+    elif valm==3:
+        if val2-1<0:
+            pass
+        
+        elif lattice[val1, val2-1]==1:
+            lattice[val1, val2]=0
+            lattice[val1, val2-1]=0
+            N=N-2
+            
+        else:
+            lattice[val1, val2]=0
+            lattice[val1, val2-1]=1
+            
+    #The particle moves up
+    else:
+        
+        if val2+1>L-1:
+            pass
+        
+        elif lattice[val1, val2+1]==1:
+            lattice[val1, val2]=0
+            lattice[val1, val2+1]=0
+            N=N-2
+            
+        else:
+            lattice[val1, val2]=0
+            lattice[val1, val2+1]=1
+            
+
+    #Apend values that we want to plot later
+    #Particle density at the current time step
     den.append(N/L**2)
-    #tlist.append(math.log(T)/T)
+    #Average particle density in the system
+    sum=sum+(N/L**2)
+    ave.append(sum/T)
     #Move to the next time step
     T=T+1
-        
+    
 
+#This part ensures that values are recorded for each time step, even if the previous loop terminates early.
+if N==0:
+    while T!=t:
+        den.append(N/L**2)
+        ave.append(sum/T)
+        T=T+1
+        
 print('Number of remaining particles: ', N)
 
 #Plot values
 plt.figure
-plt.plot(den, 'r', label='Particle density in the grid')
-#plt.plot(tlist, 'b', label='ln(t)/t')
+plt.plot(den, 'r', label='Particle density')
+plt.plot(ave, 'g', label='Ensemble average particle density')
+plt.title('Vicious Walkers in Two Dimensions')
 plt.xlabel('Time')
 plt.ylabel('Particles per grid point')
 plt.legend()

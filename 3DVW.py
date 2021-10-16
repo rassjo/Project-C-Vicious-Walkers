@@ -14,7 +14,7 @@ import sys
 
 #List that holds the densities to be plotted later.
 den=[]
-tlist=[]
+ave=[]
 
 #Generate grid (matrix) of size LxL. 
 print('How large should the sides of the grid be?')
@@ -44,22 +44,27 @@ while n !=0:
         n=n-1
     else:
         pass
-
-#The particles move t times
+    
+#The particles move t times. If no particles are left, the loop ends early.
 T=1
-while T != t:
-    val1=random.randint(0, L-1)
-    val2=random.randint(0, L-1)
-    val3=random.randint(0, L-1)
-    #Check if the random grid point contains a particle. If it does, make it move once or decay. Otherwise nothing happens and the loop continues 
-    if lattice[val1,val2,val3]==1:
-       #Use RNG to determine if the particle will decay.
-        die=random.randint(1,100)
-        if die==1:
-            #Remove the particles from the system if it decays.
-            lattice[val1,val2,val3]=0
-            N=N-1
-        else:
+sum=0
+while T != t and N>0:
+            #Make an index array of nonzero points from which we pick a random element. The corresponding partice will then move one step
+            #Nonzero creates a tuple of arrays. The first tuple element corresponds to the horizontal componet
+            par1=np.nonzero(lattice)[0]
+            #The second tuple element corresponds to the vertical componet
+            par2=np.nonzero(lattice)[1]
+            #The third tuple element corresponds to the forwards/backwards componet
+            par3=np.nonzero(lattice)[2]
+        
+            #random.choice can only be used in 1D so we have to use a different method to pick a random particle.
+            #Pick a random number between 0 and the tuple element size - 1
+            valr=random.randint(0, len(par1)-1)
+            #Use the random number to get the coordinates of a particle. That particle will be allowed to move a step
+            val1=par1[valr]
+            val2=par2[valr]
+            val3=par3[valr]
+            #Check if the random grid point contains a particle. If it does, make it move once or decay. Otherwise nothing happens and the loop continues 
             #Randomly pick which direction the particle moves
             valm=random.randint(1, 6)
             
@@ -134,19 +139,30 @@ while T != t:
                     lattice[val1, val2, val3]=0
                     lattice[val1, val2, val3+1]=1
         
-        #Append values that we want to plot later
-        den.append(N/L**3)
-        #tlist.append(1/T)
-        #Move to the next time step
+            #Append values that we want to plot later
+            den.append(N/L**3)
+            #Average density of the system
+            sum=sum+N/(L**3)
+            ave.append(sum/T)
+            #Move to the next time step
+            T=T+1
+        
+#This part ensures that values are recorded for each time step, even if the previous loop terminates early.
+if N==0:
+    while T!=t:
+        den.append(N/L**2)
+        ave.append(sum/T)
         T=T+1
         
+
 
 print('Number of remaining particles: ', N)
 
 #Plot values
 plt.figure
-plt.plot(den, 'r', label='Particle density in the grid')
-#plt.plot(tlist, 'b', label='ln(t)/t')
+plt.plot(den, 'r', label='Particle density')
+plt.plot(ave, 'g', label='Ensemble average particle density')
+plt.title('Vicious Walkers in Three Dimensions')
 plt.xlabel('Time')
 plt.ylabel('Particles per grid point')
 plt.legend()
