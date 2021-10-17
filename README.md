@@ -1,2 +1,2 @@
 # Project-C-Vicious-Walkers
-A Computational Physics project about stochastic processes. The goal is to simulate a grid of particles that perform random walk and annihilate when two occupy the same space.
+A Computational Physics project about stochastic processes. The goal is to simulate a grid of particles that perform random walks and annihilate when two of them occupy the same space.
